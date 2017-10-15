@@ -23,25 +23,27 @@ function toggleMenu() {
     }
 }
 
-function openChart(chartId) {
-    switch (chartId) {
-        case "reach":
-            requestData("reach", function() {
-                alert('asd')
-            })
-            break;
-    }
+function openChart(chart) {
+    $.ajax({
+        url: "http://localhost:8080/charts/" + chart + ".html",
+        type: 'GET',
+        success: function(result){
+            $mainContent.html(result);
+    }});
 }
 
-function requestData(type, callback) {
+function requestData(type, data) {
     $.ajax({
         url: "http://localhost:8080",
         type: 'POST',
-        data: "type=" + type,
+        data: "type=" + type + "&" + data,
         success: function(result){
-            $mainContent.html(result);
-            callback();
+            $("#chart-result").attr("src", "data:image/png;base64," + result);
     }});
+}
+
+function showReachChart() {
+    requestData("reach", "subject=" + $("#reach-subject").val());
 }
 
 $(function() {
