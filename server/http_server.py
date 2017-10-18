@@ -55,13 +55,15 @@ class RequestHandler(BaseHTTPRequestHandler):
         data = self.rfile.read(length)
 
         print("Data received: " + str(data))
-
-
-        #self.send_response(200)
-        #self.send_header('Access-Control-Allow-Origin', '*')
-        #self.end_headers()
-        #self.wfile.write(bytes("teste", "utf-8"))
         
+        chart_data = charts.get_chart(data)
+
+        self.send_response(200)
+        self.send_header('Content-type', "application/json")
+        self.end_headers()
+        self.wfile.write(bytes(chart_data, "utf-8"))
+        
+        '''
         #f = open("zne_icon.png", "rb")
         self.send_response(200)
         self.send_header('Content-type', 'image/png')
@@ -69,6 +71,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         #self.wfile.write(base64.b64encode(f.read()))
         self.wfile.write(charts.get_chart(data))
         f.close()
+        '''
         
         #self.wfile.close()
     
