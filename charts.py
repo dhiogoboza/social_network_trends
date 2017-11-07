@@ -1,5 +1,7 @@
 import json
 
+#https://api.twitter.com/1.1/trends/place.json
+
 #import base64
 
 def get_chart(data):
@@ -7,6 +9,7 @@ def get_chart(data):
     #return base64.b64encode(f.read())
     #a = {"test": 132, "a": False, "b": "bbbb"}
     
+    print(data["subject"])
     
     a = ({"cols":[{"label":"Country","type":"string"},{"label":"Popularity","type":"number"}],
             "rows":[
@@ -17,5 +20,5 @@ def get_chart(data):
         ]})
     
     return json.dumps(a)
-    
-    
+
+

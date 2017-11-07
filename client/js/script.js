@@ -19,9 +19,9 @@ function toggleMenu() {
     }
 }
 
-function openChart(chart) {
+function open(option, path) {
     $.ajax({
-        url: "http://localhost:8080/charts/" + chart + ".html",
+        url: "/" + path + "/" + option + ".html",
         type: 'GET',
         success: function(result){
             $mainContent.html(result);
@@ -30,7 +30,7 @@ function openChart(chart) {
 
 function requestData(type, data, callback) {
     $.ajax({
-        url: "http://localhost:8080",
+        url: "/data",
         type: "POST",
         dataType: "json",
         data: "type=" + type + "&" + data,
@@ -90,7 +90,7 @@ $(function() {
         $selectedMenu.removeClass(configs.menuSelector);
         $selectedMenu = $(this);
         
-        openChart($selectedMenu.attr("id"));
+        open($selectedMenu.attr("id"), $selectedMenu.data("path"));
         
         $selectedMenu.addClass(configs.menuSelector);
     });

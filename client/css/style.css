@@ -6,3 +6,7 @@ footer {
     position: absolute;
     bottom: 0px;
 }
+
+table {
+    width: 100%;
+}
