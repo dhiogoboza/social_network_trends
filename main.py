@@ -14,8 +14,9 @@
 
 # [START app]
 import logging
-
 import os
+
+from pathlib import Path
 
 from flask import Flask
 from flask import request
@@ -28,6 +29,11 @@ import requests
 from requests_oauthlib import OAuth1
 
 import twitter
+
+DATA_FOLDER = "data"
+
+# Twitter API urls
+URL_AVAILABLE_TRENDS = 'https://api.twitter.com/1.1/trends/available.json'
 
 # Authorization from twitter API
 auth = None
@@ -73,13 +79,26 @@ def get_chart(data):
     
     return json.dumps(a)
 
-if __name__ == '__main__':
+def context_init():
+    # Auth init
     global auth
     
     url = 'https://api.twitter.com/1.1/account/verify_credentials.json'
     auth = OAuth1(twitter.API_KEY, twitter.API_SECRET, twitter.ACCESS_TOKEN, twitter.ACCESS_TOKEN_SECRET)
     requests.get(url, auth=auth)
+    
+    # Locations init
+    locations_file = Path(DATA_FOLDER + "/locations.dat")
+    if not locations_file.exists():
+        r = requests.get(URL_AVAILABLE_TRENDS, auth=auth)
+        result = r.content.decode("utf-8")
+        jsonResult = json.loads(result)
+        # TODO create locations file
+        print(jsonResult[0])
 
+if __name__ == '__main__':
+    # Init data
+    context_init()
 
     # This is used when running locally. Gunicorn is used to run the
     # application on Google App Engine. See entrypoint in app.yaml.
