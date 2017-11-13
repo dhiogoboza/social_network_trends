@@ -35,7 +35,6 @@ function requestData(type, data, callback) {
         dataType: "json",
         data: "type=" + type + "&" + data,
         success: function(result) {
-            //$("#chart-result").attr("src", "data:image/png;base64," + result);
             callback(result);
         },
         error: function(xhr, error) {
@@ -63,20 +62,18 @@ function showReachChart() {
     requestData("reach", "subject=" + $("#reach-subject").val(), function(json) {
         updateLayout();
         
-        
-        /*var data = google.visualization.arrayToDataTable([
-            ['Country', 'Popularity'],
-            ['Germany', 200],
-            ['United States', 300],
-            ['Brazil', 400],
-            ['Canada', 500],
-            ['France', 600],
-            ['RU', 700]
-        ]);*/
-        
         var data = new google.visualization.DataTable(json);
         
         drawRegionsMap(data);
+    });
+}
+
+function showLocations() {
+    requestData("locations", "", function(json) {
+        var $locations_table = $("#locations_table");
+        console.log(json)
+        
+        $("tr:not(first)", $locations_table).remove();
     });
 }
 

@@ -31,13 +31,19 @@ from requests_oauthlib import OAuth1
 import twitter
 
 DATA_FOLDER = "data"
+LOCATIONS_FILE = "/locations.dat"
 
 # Twitter API urls
+URL_AUTH = 'https://api.twitter.com/1.1/account/verify_credentials.json'
 URL_AVAILABLE_TRENDS = 'https://api.twitter.com/1.1/trends/available.json'
 
 # Authorization from twitter API
 auth = None
 
+# Twitter locations
+locations = None
+
+# Flask app
 app = Flask(__name__, static_folder = 'client', static_url_path = '')
 
 @app.route('/')
@@ -47,7 +53,16 @@ def index():
 
 @app.route('/data', methods=['POST'])
 def data():
-    return get_chart(json.dumps(request.form))
+    data = request.form.to_dict()
+    
+    if (data["type"] == "locations"):
+        return json.dumps(locations)
+    else:
+        return get_chart(data)
+
+@app.route('/locations', methods=['GET'])
+def get_locations():
+    return locations
 
 @app.errorhandler(500)
 def server_error(e):
@@ -79,22 +94,36 @@ def get_chart(data):
     
     return json.dumps(a)
 
+def load_locations():
+    global locations
+    
+    with open(DATA_FOLDER + LOCATIONS_FILE) as json_file:  
+        locations = json.load(json_file)
+    
+def update_locations():
+    global locations
+    
+    r = requests.get(URL_AVAILABLE_TRENDS, auth=auth)
+    result = r.content.decode("utf-8")
+    locations = json.loads(result)
+    
+    with open(DATA_FOLDER + LOCATIONS_FILE, 'w') as outfile:  
+        json.dump(locations, outfile)
+
 def context_init():
     # Auth init
     global auth
     
-    url = 'https://api.twitter.com/1.1/account/verify_credentials.json'
+    url = URL_AUTH
     auth = OAuth1(twitter.API_KEY, twitter.API_SECRET, twitter.ACCESS_TOKEN, twitter.ACCESS_TOKEN_SECRET)
     requests.get(url, auth=auth)
     
     # Locations init
-    locations_file = Path(DATA_FOLDER + "/locations.dat")
+    locations_file = Path(DATA_FOLDER + LOCATIONS_FILE)
     if not locations_file.exists():
-        r = requests.get(URL_AVAILABLE_TRENDS, auth=auth)
-        result = r.content.decode("utf-8")
-        jsonResult = json.loads(result)
-        # TODO create locations file
-        print(jsonResult[0])
+        update_locations()
+    else:
+        load_locations()
 
 if __name__ == '__main__':
     # Init data

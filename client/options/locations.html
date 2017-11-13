@@ -11,19 +11,21 @@
         <div class="w3-col" style="padding-right: 40px">
             <button onclick="refreshLocations()"><i class="fa fa-refresh fa-fw"></i> Atualizar</button>
             
-            <table>
+            <table id="locations_table">
                 <tr>
                     <th>Nome</th>
                     <th>Lat,Long</th>
                 </tr>
-                <tr>
-                    <td>Brazil</td>
-                    <td>0,0</td>
-                </tr>
-                <tr>
-                    <td>United States</td>
-                    <td>100,100</td>
-                </tr>
+                <tbody>
+                    <tr>
+                        <td>Brazil</td>
+                        <td>0,0</td>
+                    </tr>
+                    <tr>
+                        <td>United States</td>
+                        <td>100,100</td>
+                    </tr>
+                </tbody>
             </table>
             
         </div>
@@ -31,7 +33,9 @@
     </div>
 </div>
 
-<script type="text-javascript">
-    showLocations();
+<script type="text/javascript">
+    $(function() {
+        showLocations();    
+    });
 </script>
 
