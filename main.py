@@ -13,8 +13,10 @@
 # limitations under the License.
 
 # [START app]
+
 import logging
 import os
+import time
 
 from pathlib import Path
 
@@ -30,12 +32,13 @@ from requests_oauthlib import OAuth1
 
 import twitter
 
-DATA_FOLDER = "data"
-LOCATIONS_FILE = "/locations.dat"
+DATA_FOLDER = "data/"
+LOCATIONS_FILE = "locations.dat"
 
 # Twitter API urls
 URL_AUTH = 'https://api.twitter.com/1.1/account/verify_credentials.json'
 URL_AVAILABLE_TRENDS = 'https://api.twitter.com/1.1/trends/available.json'
+URL_TRENDS_IN_PLACE = 'https://api.twitter.com/1.1/trends/place.json?id='
 
 # Authorization from twitter API
 auth = None
@@ -57,12 +60,11 @@ def data():
     
     if (data["type"] == "locations"):
         return json.dumps(locations)
+    elif (data["type"] == "refreshlocations"):
+        update_locations()
+        return json.dumps(locations)
     else:
         return get_chart(data)
-
-@app.route('/locations', methods=['GET'])
-def get_locations():
-    return locations
 
 @app.errorhandler(500)
 def server_error(e):
@@ -72,27 +74,133 @@ def server_error(e):
     See logs for full stacktrace.
     """.format(e), 500
 
+def get_trend_key(item):
+    return item["tweet_volume"]
+
+def get_trends_in_place(subject_lines, subject, now, woeid):
+    '''
+    Get trends in place based on subject, current date and place (woeid)
+    https://developer.twitter.com/en/docs/trends/trends-for-location/api-reference/get-trends-place
+    '''
+    cache = True
+    data_path = DATA_FOLDER + "reach/" + now
+    if (not Path(data_path).exists()):
+        os.mkdir(data_path)
+        cache = False
+    
+    data_path = data_path + "/" + subject + "/"
+    
+    if (not Path(data_path).exists()):
+        os.mkdir(data_path)
+        cache = False
+    
+    data_path = data_path + str(woeid) + ".dat"
+    
+    if (cache and Path(data_path).exists()):
+        with open(data_path) as json_file:  
+            return json.load(json_file)
+    
+    # If data is not in cache do request
+    r = requests.get(URL_TRENDS_IN_PLACE + str(woeid), auth=auth)
+    result = json.loads(r.content.decode("utf-8"))
+    
+    if (isinstance(result, list)):
+        # Cache result
+        print(data_path)
+        with open(data_path, 'w') as outfile:  
+            json.dump(result, outfile)
+        
+        # Register at subject map
+        i = 0
+        found = False
+        for line in subject_lines:
+            split = line.split("=")
+            if (split[0] == str(woeid)):
+                split = split[1].split(',')
+                if not now in split:
+                    subject_lines[i] = line + "," + now
+                    found = True
+            i = i + 1
+        
+        if not found:
+            subject_lines.append(str(woeid) + "=" + now)
+        
+        return result
+    else:
+        print("Error:", result)
+    
+    return ""
+
 def get_chart(data):
     print("data:", data)
     
-    #print(data["subject"])
-    
-    #url =  'https://api.twitter.com/1.1/trends/available.json'
-    #r = requests.get(url, auth=auth)
-    
-    #result_data = json.dumps(r.content)
-    
-    #print(result_data)
-    
-    a = ({"cols":[{"label":"Country","type":"string"},{"label":"Popularity","type":"number"}],
+    if (data["type"] == "reach"):
+        reach_data_folder = DATA_FOLDER + "reach/"
+        
+        if (not Path(reach_data_folder).exists()):
+            os.mkdir(reach_data_folder)
+        
+        subject_map = reach_data_folder + data["subject"] + ".map"
+        subject_lines = []
+        data_map_file = Path(subject_map)
+        now = str(time.strftime("%d-%m-%Y"))
+        
+        if (data_map_file.exists()):
+            with open(subject_map) as f:
+                for line in f:
+                    subject_lines.append(line)
+        else:
+            open(subject_map, 'a').close()
+
+        all_data = []
+        for location in locations:
+            print("location:", location["woeid"], "-", location["parentid"])
+            
+            if (location["parentid"] != 1):
+                result = get_trends_in_place(subject_lines, data["subject"], now, location["woeid"])
+                
+                if (result != ""):
+                    all_location_data = []                    
+                    for trend in result[0]["trends"]:
+                        current_data = {}
+                        current_data["name"] = trend["name"]
+                        current_data["tweet_volume"] = trend["tweet_volume"] if trend["tweet_volume"]!=None else 0
+                        all_location_data.append(current_data)
+                    
+                    all_location_data = sorted(all_location_data, key=get_trend_key, reverse=True)
+                    #print("all_location_data",all_location_data)
+                    
+                    rate = 100
+                    for trend in all_location_data:
+                        if (trend["name"] == data["subject"]):
+                            break
+                        rate = rate - 2
+                    
+                    location_data = {"country": location["country"], "rate": rate}
+                    
+                    all_data.append(location_data)
+                else:
+                    break;
+        
+            
+        print("all_data:", all_data)
+        
+        # Save subject map
+        data_map_file = open(subject_map, 'w')
+        for line in subject_lines:
+            data_map_file.write("%s\n" % line)
+        
+        chart_data = ({"cols":[{"label":"Country","type":"string"},{"label":"Popularity","type":"number"}],
             "rows":[
                 {"c":[{"v":"Germany"},{"v":200}]},{"c":[{"v":"United States"},{"v":300}]},
                 {"c":[{"v":"Brazil"},{"v":400}]},{"c":[{"v":"Canada"},{"v":500}]},
                 {"c":[{"v":"France"},{"v":600}]},{"c":[{"v":"RU"},{"v":700}
             ]}
         ]})
-    
-    return json.dumps(a)
+            
+        return json.dumps(chart_data)
+        
+    return ""
 
 def load_locations():
     global locations

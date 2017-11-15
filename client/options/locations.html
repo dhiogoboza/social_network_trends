@@ -8,25 +8,21 @@
 
 <div class="w3-panel">
     <div class="w3-row-padding" style="margin:0 -16px">
-        <div class="w3-col" style="padding-right: 40px">
+        <div class="w3-col" style="padding-right: 40px"> 
             <button onclick="refreshLocations()"><i class="fa fa-refresh fa-fw"></i> Atualizar</button>
-            
-            <table id="locations_table">
-                <tr>
-                    <th>Nome</th>
-                    <th>Lat,Long</th>
-                </tr>
-                <tbody>
-                    <tr>
-                        <td>Brazil</td>
-                        <td>0,0</td>
-                    </tr>
-                    <tr>
-                        <td>United States</td>
-                        <td>100,100</td>
-                    </tr>
-                </tbody>
-            </table>
+            <section class="" style="margin-top: 5px">
+                <div class="container">
+                    <table class="w3-table w3-striped w3-bordered w3-hoverable w3-white" id="locations_table">
+                        <tr class="header">
+                            <th><div>ID</div></th>
+                            <th><div>Nome</div></th>
+                            <th style="width: 150px"><div>Código do País</div></th>
+                            <th><div>País</div></th>
+                            <th><div>Pai</div></th>
+                        </tr>
+                    </table>
+                </div>
+            </section>
             
         </div>
 
@@ -35,7 +31,8 @@
 
 <script type="text/javascript">
     $(function() {
-        showLocations();    
+        updateLayout($(".container"));
+        loadLocations();    
     });
 </script>
 

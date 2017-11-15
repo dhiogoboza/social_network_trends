@@ -52,15 +52,13 @@ function drawRegionsMap(data) {
     chart.draw(data, options);
 }
 
-function updateLayout() {
-    var $gchart = $("#gchart");
-    
-    $gchart.css("height", ($(window).height() - $gchart.offset().top - 40) + "px");
+function updateLayout($container) {
+    $container.css("height", ($(window).height() - $container.offset().top - 40) + "px");
 }
 
 function showReachChart() {
     requestData("reach", "subject=" + $("#reach-subject").val(), function(json) {
-        updateLayout();
+        updateLayout($("#gchart"));
         
         var data = new google.visualization.DataTable(json);
         
@@ -68,13 +66,45 @@ function showReachChart() {
     });
 }
 
-function showLocations() {
-    requestData("locations", "", function(json) {
-        var $locations_table = $("#locations_table");
-        console.log(json)
-        
-        $("tr:not(first)", $locations_table).remove();
+function scrollToParent(parentId) {
+    var $container = $('.container');
+    var offset = $container.offset().top;
+    
+    $container.animate({
+        scrollTop: $("#" + parentId).offset().top - offset - 40
+    }, 200);
+}
+
+function refreshLocations() {
+    requestData("refreshlocations", "", function(json) {
+        showLocations(json);
     });
+}
+
+function loadLocations() {
+    requestData("locations", "", function(json) {
+        showLocations(json);
+    });
+}
+
+function showLocations(json) {
+    var $locations_table = $("#locations_table");
+    $("tr:gt(0)", $locations_table).remove();
+    
+    for (var i = 0; i < json.length; i++){
+      var obj = json[i];
+      
+      $tr = $("<tr />").html("<td><a id=" + obj["woeid"] +
+            "></a>" + obj["woeid"] + "</td>" +
+            "<td>" + obj["name"] + "</td>" +
+            "<td>" + obj["countryCode"] + "</td>" +
+            "<td>" + obj["country"] + "</td>" +
+            "<td>" + (obj["parentid"] !== "0"? "<a onClick='scrollToParent(\"" + obj["parentid"] + "\")' href='#'>" : "") +
+            obj["parentid"] + (obj["parentid"] !== "0"? "</a>" : "") + "</td>"
+      );
+      
+      $locations_table.append($tr);
+    }
 }
 
 $(function() {

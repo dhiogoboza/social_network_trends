@@ -10,3 +10,67 @@ footer {
 table {
     width: 100%;
 }
+
+section {
+  position: relative;
+  border: 1px solid #ccc!important;
+  padding-top: 37px;
+}
+
+section.positioned {
+  position: absolute;
+  top:100px;
+  left:100px;
+  width:800px;
+}
+
+.container {
+  margin-top: -17px;
+  overflow-y: auto;
+}
+table {
+  border-spacing: 0;
+  width:100%;
+}
+
+td + td {
+  border-left:1px solid #eee;
+}
+
+td, th {
+  padding: 10px 25px;
+}
+
+th {
+  height: 0;
+  line-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  color: transparent;
+  border: none;
+  white-space: nowrap;
+}
+
+th div {
+  position: absolute;
+  padding: 9px 25px;
+  top: 0;
+  color: #000000 !important;
+  margin-left: -25px;
+  line-height: normal;
+  background-color: #fff;
+}
+
+th div:first-child {
+    border: none;
+}
+
+th:first-child div {
+    width: 100%;
+    margin-left: -16px;
+    border-bottom: 1px solid #ccc;
+}
+
+th:last-child div {
+    margin-right: -16px;
+}
