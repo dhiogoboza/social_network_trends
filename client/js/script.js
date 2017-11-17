@@ -49,19 +49,28 @@ function requestData(type, data, callback) {
 }
 
 function drawRegionsMap(data) {
+    var container = document.getElementById('gchart');
+    
+    console.log(container.clientWidth)
+    
     var options = {};
-
-    var chart = new google.visualization.GeoChart(document.getElementById('gchart'));
-
-    chart.draw(data, options);
+    options['dataMode'] = 'regions';
+    options['width'] = container.clientWidth;
+    options['height'] = container.clientHeight;
+    
+    //var chart = new google.visualization.GeoChart(document.getElementById('gchart'));
+    //chart.draw(data, options);
+    
+    var geomap = new google.visualization.GeoMap(container);
+    geomap.draw(data, options);
 }
 
 function updateLayout($container) {
     $container.css("height", ($(window).height() - $container.offset().top - 40) + "px");
 }
 
-function showReachChart() {
-    requestData("reach", "subject=" + $("#reach-subject").val(), function(json) {
+function showSubjectInPlacesChart() {
+    requestData("subjectinplaces", "subject=" + $("#reach-subject").val(), function(json) {
         updateLayout($("#gchart"));
         
         var data = new google.visualization.DataTable(json);
@@ -127,10 +136,9 @@ $(function() {
         
         e.preventDefault();
     });
-    
-    
+        
     google.charts.load('current', {
-        'packages': ['geochart'],
+        'packages': ['geochart', 'geomap'],
         // Note: you will need to get a mapsApiKey for your project.
         // See: https://developers.google.com/chart/interactive/docs/basic_load_libs#load-settings
         'mapsApiKey': 'AIzaSyA3yqnlgXnfqj3Los7Rn2S6Ncs6t8z8Pxk'

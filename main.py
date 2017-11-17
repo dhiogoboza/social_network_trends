@@ -17,6 +17,7 @@
 import logging
 import os
 import time
+import simpleregex
 
 from pathlib import Path
 
@@ -33,6 +34,7 @@ from requests_oauthlib import OAuth1
 import twitter
 
 DATA_FOLDER = "data/"
+TRENDS_PLACE_FOLDER = "trends_place/"
 LOCATIONS_FILE = "locations.dat"
 
 # Twitter API urls
@@ -80,19 +82,13 @@ def server_error(e):
 def get_trend_key(item):
     return item["tweet_volume"]
 
-def get_trends_in_place(subject_lines, subject, now, woeid):
+def get_trends_in_place(now, woeid):
     '''
-    Get trends in place based on subject, current date and place (woeid)
+    Get trends in place, current date and place (woeid)
     https://developer.twitter.com/en/docs/trends/trends-for-location/api-reference/get-trends-place
     '''
     cache = True
-    data_path = DATA_FOLDER + "reach/" + now
-    if (not Path(data_path).exists()):
-        os.mkdir(data_path)
-        cache = False
-    
-    data_path = data_path + "/" + subject + "/"
-    
+    data_path = DATA_FOLDER + TRENDS_PLACE_FOLDER + now + "/"
     if (not Path(data_path).exists()):
         os.mkdir(data_path)
         cache = False
@@ -108,25 +104,10 @@ def get_trends_in_place(subject_lines, subject, now, woeid):
     result = json.loads(r.content.decode("utf-8"))
     
     if (isinstance(result, list)):
-        # Cache result
+        # Save result
         print(data_path)
         with open(data_path, 'w') as outfile:  
             json.dump(result, outfile)
-        
-        # Register at subject map
-        i = 0
-        found = False
-        for line in subject_lines:
-            split = line.split("=")
-            if (split[0] == str(woeid)):
-                split = split[1].split(',')
-                if not now in split:
-                    subject_lines[i] = line + "," + now
-                    found = True
-            i = i + 1
-        
-        if not found:
-            subject_lines.append(str(woeid) + "=" + now)
         
         return result
     else:
@@ -137,30 +118,28 @@ def get_trends_in_place(subject_lines, subject, now, woeid):
 def get_chart(data):
     print("data:", data)
     
-    if (data["type"] == "reach"):
-        reach_data_folder = DATA_FOLDER + "reach/"
+    if (data["type"] == "subjectinplaces"):
+        # Folder to save trends in places
+        tp_data_folder = DATA_FOLDER + TRENDS_PLACE_FOLDER
         
-        if (not Path(reach_data_folder).exists()):
-            os.mkdir(reach_data_folder)
+        if (not Path(tp_data_folder).exists()):
+            os.mkdir(tp_data_folder)
         
-        subject_map = reach_data_folder + data["subject"] + ".map"
-        subject_lines = []
-        data_map_file = Path(subject_map)
+        subject = data["subject"].strip()
+        
+        if (subject == ""):
+            return "{'error':'Empty subject'}"
+        
+        subject_regex = simpleregex.create(subject)
+        
+        subject_map = tp_data_folder + subject + ".map"
         now = str(time.strftime("%d-%m-%Y"))
         
-        if (data_map_file.exists()):
-            with open(subject_map) as f:
-                for line in f:
-                    subject_lines.append(line)
-        else:
-            open(subject_map, 'a').close()
-
-        all_data = []
+        all_data = {}
         for location in locations:
-            print("location:", location["woeid"], "-", location["parentid"])
-            
-            if (location["parentid"] != 1):
-                result = get_trends_in_place(subject_lines, data["subject"], now, location["woeid"])
+            if (location["parentid"] == 1):
+                print("location:", location["woeid"])
+                result = get_trends_in_place(now, location["woeid"])
                 
                 if (result != ""):
                     all_location_data = []                    
@@ -174,32 +153,35 @@ def get_chart(data):
                     #print("all_location_data",all_location_data)
                     
                     rate = 100
+                    found = False
                     for trend in all_location_data:
-                        if (trend["name"] == data["subject"]):
+                        # Check if subjetc matches query
+                        if (simpleregex.match(subject_regex, trend["name"])):
+                            found = True
                             break
                         rate = rate - 2
                     
-                    location_data = {"country": location["country"], "rate": rate}
+                    if not found:
+                        rate = 0
                     
-                    all_data.append(location_data)
+                    location_data = {"country": location["name"], "rate": rate}
+                    if (location["woeid"] in all_data):
+                        location_data["rate"] = location_data["rate"] + all_data[location["woeid"]]["rate"]
+                    else:  
+                        all_data[location["woeid"]] = location_data
                 else:
                     break;
         
-            
         print("all_data:", all_data)
         
-        # Save subject map
-        data_map_file = open(subject_map, 'w')
-        for line in subject_lines:
-            data_map_file.write("%s\n" % line)
+        chart_data = ({
+            "cols":[{"label":"Country","type":"string"},{"label":"Popularidade","type":"number"}],
+            "rows":[]
+        })
         
-        chart_data = ({"cols":[{"label":"Country","type":"string"},{"label":"Popularity","type":"number"}],
-            "rows":[
-                {"c":[{"v":"Germany"},{"v":200}]},{"c":[{"v":"United States"},{"v":300}]},
-                {"c":[{"v":"Brazil"},{"v":400}]},{"c":[{"v":"Canada"},{"v":500}]},
-                {"c":[{"v":"France"},{"v":600}]},{"c":[{"v":"RU"},{"v":700}
-            ]}
-        ]})
+        for key, location_data in all_data.items():
+            location_json = {"c":[{"v": location_data["country"]},{"v": str(location_data["rate"])}]}
+            chart_data["rows"].append(location_json)
             
         return json.dumps(chart_data)
         
