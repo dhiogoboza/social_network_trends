@@ -4,7 +4,8 @@ var configs = {
     main: ".w3-main",
     menu: ".w3-bar-block",
     menuWidth: "300px",
-    menuSelector: 'w3-blue'
+    menuSelector: "w3-blue",
+	serverUrl: "http://localhost:8080"
 }
 
 var $mySidebar, $overlayBg, $mainContent, $selectedMenu;
@@ -19,27 +20,30 @@ function toggleMenu() {
     }
 }
 
-function open(option, path) {
+function open(path) {
     $.ajax({
-        url: "/" + path + "/" + option + ".html",
+        url: "/" + path,
         type: 'GET',
         success: function(result){
             $mainContent.html(result);
-    }});
+    	},
+		error: function(xhr, status, error) {
+            console.log(error + " - " + status);
+        }
+	});
 }
 
 function requestData(type, data, callback) {
     $.ajax({
-        url: "/data",
+        url: configs.serverUrl + "/data",
         type: "POST",
         dataType: "json",
         data: "type=" + type + "&" + data,
         success: function(result) {
             callback(result);
         },
-        error: function(xhr, error) {
-            console.log(error);
-            console.log(xhr);
+        error: function(xhr, status, error) {
+            console.log(error + " - " + status);
         }
     });
 }
@@ -113,13 +117,15 @@ $(function() {
     $mainContent = $(configs.main);
     $selectedMenu = $(configs.menu + " ." + configs.menuSelector);
     
-    $(configs.menu + ' a:not(.w3-hide-large)').on("click", function () {
+    $(configs.menu + ' a:not(.w3-hide-large)').on("click", function (e) {
         $selectedMenu.removeClass(configs.menuSelector);
         $selectedMenu = $(this);
         
-        open($selectedMenu.attr("id"), $selectedMenu.data("path"));
+        open($selectedMenu.attr("href"));
         
         $selectedMenu.addClass(configs.menuSelector);
+        
+        e.preventDefault();
     });
     
     

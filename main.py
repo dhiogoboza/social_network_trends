@@ -57,14 +57,17 @@ def index():
 @app.route('/data', methods=['POST'])
 def data():
     data = request.form.to_dict()
+    json_data = None
     
     if (data["type"] == "locations"):
-        return json.dumps(locations)
+        json_data = json.dumps(locations)
     elif (data["type"] == "refreshlocations"):
         update_locations()
-        return json.dumps(locations)
+        json_data = json.dumps(locations)
     else:
-        return get_chart(data)
+        json_data = get_chart(data)
+
+    return json_data
 
 @app.errorhandler(500)
 def server_error(e):
@@ -226,6 +229,10 @@ def context_init():
     auth = OAuth1(twitter.API_KEY, twitter.API_SECRET, twitter.ACCESS_TOKEN, twitter.ACCESS_TOKEN_SECRET)
     requests.get(url, auth=auth)
     
+    # Create /data folder if not exists
+    if not Path(DATA_FOLDER).exists():
+        os.mkdir(DATA_FOLDER)
+
     # Locations init
     locations_file = Path(DATA_FOLDER + LOCATIONS_FILE)
     if not locations_file.exists():

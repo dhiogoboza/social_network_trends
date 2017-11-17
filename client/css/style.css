@@ -74,3 +74,8 @@ th:first-child div {
 th:last-child div {
     margin-right: -16px;
 }
+
+.w3-hoverable tbody tr.header:hover {
+	background-color:#fff;
+}
+
