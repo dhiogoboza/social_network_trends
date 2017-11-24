@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+
+<header class="w3-container" style="padding-top:22px">
+    <h5><b><i class="fa fa-calendar-o"></i> Histórico de relevância de assuntos no mundo</b></h5>
+</header>
+
+<div class="w3-panel">
+    <div class="w3-row-padding" style="margin:0 -16px">
+        <label for="subject">Assunto:</label> <input type="text" value="*World*" id="subject"/>
+        <label for="starts">Data inicial:</label> <input type="date" value="" id="starts"/>
+        <label for="ends">Data final:</label> <input type="date" value="" id="ends"/>
+        
+        <input type="button" onclick="showSubjectInPlacesHistoryChart()" value="Ok" />
+        
+        <div class="w3-col" style="padding-right: 40px">
+            <div id="timeline">
+                
+            </div>        
+            <div id="gchart">
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function() {
+        var now = new Date();
+        $("#ends").val(now.toDateInputValue());
+        
+        now.setDate(now.getDate() - 10);
+        $("#starts").val(now.toDateInputValue());
+    });
+</script>

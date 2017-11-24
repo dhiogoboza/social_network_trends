@@ -1,6 +1,9 @@
-def create(pattern):
-    regex = []
+def create(pattern, icase = True):
+    regex = {}
+    regex["icase"] = icase
+    regex["items"] = []
     split = pattern.split("|")
+    
     for item in split:
         starts = False
         ends = False
@@ -17,14 +20,18 @@ def create(pattern):
             starts = True
             item = item[:-1]
         
-        regex.append({"i": item, "s": starts, "e": ends})
+        if (icase):
+            item = item.lower()
+        
+        regex["items"].append({"i": item, "s": starts, "e": ends})
     
     return regex
 
 def match(regex, subject):
-    for item in regex:
-        print(item)
+    if (regex["icase"]):
+        subject = subject.lower()
         
+    for item in regex["items"]:
         if item["s"] and item["e"]:
             if item["i"] in subject:
                 return True

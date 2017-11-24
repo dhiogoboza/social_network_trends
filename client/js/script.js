@@ -63,18 +63,69 @@ function drawRegionsMap(data) {
     
     var geomap = new google.visualization.GeoMap(container);
     geomap.draw(data, options);
+    
+    return geomap;
+}
+
+function updateLayout($container, offset) {
+    $container.css("height", ($(window).height() - $container.offset().top - 40 - offset) + "px");
 }
 
 function updateLayout($container) {
     $container.css("height", ($(window).height() - $container.offset().top - 40) + "px");
 }
 
+function convertDateToUTC(date) { 
+    return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()); 
+}
+
+function showSubjectInPlacesHistoryChart() {
+    var start_date = $("#starts").val();
+    var end_date = $("#ends").val();
+
+    requestData("subjectinplaceshistory", "subject=" + $("#subject").val() +
+            "&starts=" + start_date + "&ends=" + end_date, function(json) {
+        updateLayout($("#gchart"), 50);
+        
+        //console.log(json);
+        
+        for (var key in json){
+            var value = json[key];
+            console.log(key);
+            //console.log(value);
+        }
+        
+        var start = convertDateToUTC(new Date(start_date));
+        var end = convertDateToUTC(new Date(end_date));
+        
+        $("#timeline").timeline({
+            start_date: start,
+            end_date: end,
+            onSelection: function(date) {
+                updateLayout($("#gchart"), 50);
+                var data = new google.visualization.DataTable(json[date]);
+                drawRegionsMap(data);
+            }
+        });
+
+        /*while(start <= end){
+           console.log(start.getDate() + "-" + (start.getMonth() + 1) + "-" + start.getFullYear());
+
+           var newDate = start.setDate(start.getDate() + 1);
+           start = new Date(newDate);
+        }*/
+        
+        //var data = new google.visualization.DataTable(json);
+        //drawRegionsMap(data);
+    });
+}
+
+
 function showSubjectInPlacesChart() {
-    requestData("subjectinplaces", "subject=" + $("#reach-subject").val(), function(json) {
+    requestData("subjectinplaces", "subject=" + $("#subject").val(), function(json) {
         updateLayout($("#gchart"));
         
         var data = new google.visualization.DataTable(json);
-        
         drawRegionsMap(data);
     });
 }
@@ -104,7 +155,7 @@ function showLocations(json) {
     var $locations_table = $("#locations_table");
     $("tr:gt(0)", $locations_table).remove();
     
-    for (var i = 0; i < json.length; i++){
+    for (var i = 0; i < json.length; i++) {
       var obj = json[i];
       
       $tr = $("<tr />").html("<td><a id=" + obj["woeid"] +
@@ -119,6 +170,12 @@ function showLocations(json) {
       $locations_table.append($tr);
     }
 }
+
+Date.prototype.toDateInputValue = (function() {
+    var local = new Date(this);
+    local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
+    return local.toJSON().slice(0,10);
+});
 
 $(function() {
     $mySidebar = $(configs.sidebar);
