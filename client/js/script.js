@@ -51,8 +51,6 @@ function requestData(type, data, callback) {
 function drawRegionsMap(data) {
     var container = document.getElementById('gchart');
     
-    console.log(container.clientWidth)
-    
     var options = {};
     options['dataMode'] = 'regions';
     options['width'] = container.clientWidth;
@@ -75,10 +73,6 @@ function updateLayout($container) {
     $container.css("height", ($(window).height() - $container.offset().top - 40) + "px");
 }
 
-function convertDateToUTC(date) { 
-    return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()); 
-}
-
 function showSubjectInPlacesHistoryChart() {
     var start_date = $("#starts").val();
     var end_date = $("#ends").val();
@@ -87,36 +81,30 @@ function showSubjectInPlacesHistoryChart() {
             "&starts=" + start_date + "&ends=" + end_date, function(json) {
         updateLayout($("#gchart"), 50);
         
-        //console.log(json);
+        var start = new Date(start_date).convertToUTC();
+        var end = new Date(end_date).convertToUTC();
         
-        for (var key in json){
-            var value = json[key];
-            console.log(key);
-            //console.log(value);
+        var date_str;
+        var dates = [];
+        while (start <= end) {
+            date_str = start.formatString("D-m-YYYY");
+            
+            if (date_str in json && json[date_str]["rows"].length > 0) {
+                dates.push(start);
+            }
+            
+            var startClone = new Date(start);
+            start = new Date(startClone.setUTCDate(startClone.getUTCDate() + 1));
         }
         
-        var start = convertDateToUTC(new Date(start_date));
-        var end = convertDateToUTC(new Date(end_date));
-        
         $("#timeline").timeline({
-            start_date: start,
-            end_date: end,
+            dates: dates,
             onSelection: function(date) {
                 updateLayout($("#gchart"), 50);
                 var data = new google.visualization.DataTable(json[date]);
                 drawRegionsMap(data);
             }
         });
-
-        /*while(start <= end){
-           console.log(start.getDate() + "-" + (start.getMonth() + 1) + "-" + start.getFullYear());
-
-           var newDate = start.setDate(start.getDate() + 1);
-           start = new Date(newDate);
-        }*/
-        
-        //var data = new google.visualization.DataTable(json);
-        //drawRegionsMap(data);
     });
 }
 
@@ -170,12 +158,6 @@ function showLocations(json) {
       $locations_table.append($tr);
     }
 }
-
-Date.prototype.toDateInputValue = (function() {
-    var local = new Date(this);
-    local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
-    return local.toJSON().slice(0,10);
-});
 
 $(function() {
     $mySidebar = $(configs.sidebar);

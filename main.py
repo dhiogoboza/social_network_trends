@@ -73,6 +73,16 @@ def data():
 
     return json_data
 
+@app.route('/tasks/update_data', methods=['GET'])
+def update_data():
+    data = {}
+    data["type"] = "subjectinplaces"
+    data["subject"] = "none"
+    
+    get_chart(data)
+    
+    return "succes"
+
 @app.errorhandler(500)
 def server_error(e):
     logging.exception('An error occurred during a request.')
@@ -115,7 +125,7 @@ def get_trends_in_place(now, woeid, history=False):
     '''
     cache = True
     data_path = TRENDS_PLACE_FOLDER + now + "/"
-    if (not Path(data_path).exists()):
+    if (not Path(data_path).exists() and not history):
         os.mkdir(data_path)
         cache = False
     
@@ -187,7 +197,6 @@ def get_subject_relevance_in_places(date, subject_regex, locations):
                 rate = 100
                 found = False
                 for trend in all_location_data:
-                    print(trend)
                     # Check if subjetc matches query
                     if (simpleregex.match(subject_regex, trend["name"])):
                         found = True
@@ -205,7 +214,7 @@ def get_subject_relevance_in_places(date, subject_regex, locations):
             else:
                 break;
     
-    print("All data:", all_data)
+    print("All data", date, ":", all_data)
     
     chart_data = ({
         "cols":[{"label":"Country","type":"string"},{"label":"Relevância","type":"number"}],
