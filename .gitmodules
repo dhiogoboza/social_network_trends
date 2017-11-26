@@ -1,0 +1,3 @@
+[submodule "client/js/jquery-horizontal-timeline"]
+	path = client/js/jquery-horizontal-timeline
+	url = https://github.com/dhiogoboza/jquery-horizontal-timeline.git
