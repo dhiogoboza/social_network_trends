@@ -1,0 +1,3 @@
+[submodule "client/js/jquery-timeline"]
+	path = client/js/jquery-timeline
+	url = https://github.com/dhiogoboza/jquery-timeline.git
