@@ -1,3 +1,6 @@
 [submodule "client/js/jquery-timeline"]
 	path = client/js/jquery-timeline
 	url = https://github.com/dhiogoboza/jquery-timeline.git
+[submodule "client/js/jquery-ajax-select"]
+	path = client/js/jquery-ajax-select
+	url = https://github.com/dhiogoboza/jquery-ajax-select.git
