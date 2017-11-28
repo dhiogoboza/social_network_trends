@@ -4,3 +4,6 @@
 [submodule "client/js/jquery-ajax-select"]
 	path = client/js/jquery-ajax-select
 	url = https://github.com/dhiogoboza/jquery-ajax-select.git
+[submodule "client/js/jquery-ajax-autocomplete"]
+	path = client/js/jquery-ajax-autocomplete
+	url = https://github.com/dhiogoboza/jquery-ajax-autocomplete.git
