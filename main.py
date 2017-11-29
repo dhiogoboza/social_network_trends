@@ -274,6 +274,15 @@ def get_chart(data):
         return json.dumps(all_data)
         
     # End subjectinplaceshistory
+    
+    elif (data["type"] == "subjectsinplace"):
+        data = get_trends_in_place(str(time.strftime("%d-%m-%Y")), data["location"])
+        
+        print(data[0]["trends"])
+        
+        return json.dumps(data[0]["trends"])
+        
+    # End subjectsinplace
         
     return ""
 

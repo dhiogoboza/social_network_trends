@@ -108,13 +108,20 @@ function showSubjectInPlacesHistoryChart() {
     });
 }
 
-
 function showSubjectInPlacesChart() {
     requestData("subjectinplaces", "subject=" + $("#subject").val(), function(json) {
         updateLayout($("#gchart"));
         
         var data = new google.visualization.DataTable(json);
         drawRegionsMap(data);
+    });
+}
+
+function showAllSubjectsInPlace() {
+    requestData("subjectsinplace", "location=" + $("#location").val(), function(json) {
+        updateLayout($("#gchart"));
+        
+        console.log(json);
     });
 }
 
