@@ -79,3 +79,14 @@ th:last-child div {
 	background-color:#fff;
 }
 
+/***********************
+         LOADER
+************************/
+#loader {
+    z-index: 99;
+    display: none;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+

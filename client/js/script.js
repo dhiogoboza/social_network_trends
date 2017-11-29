@@ -185,4 +185,11 @@ $(function() {
 
     //google.charts.setOnLoadCallback(drawRegionsMap);*/
     
+    $(document)
+        .ajaxStart(function(){
+            $("#loader").show();
+        })
+        .ajaxStop(function(){
+            $("#loader").hide();
+        });
 });

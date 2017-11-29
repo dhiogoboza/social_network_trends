@@ -65,7 +65,18 @@ def data():
     json_data = None
     
     if (data["type"] == "locations"):
-        json_data = json.dumps(load_locations())
+        if 'text' in data:
+            text = data["text"]
+            locations = load_locations()
+            new_locations = []
+            for loc in locations:
+                if (text in loc["name"]):
+                    new_loc = {"name": loc["name"], "id": loc["woeid"]}
+                    new_locations.append(new_loc)
+            
+            json_data = json.dumps(new_locations)
+        else:
+            json_data = json.dumps(load_locations())
     elif (data["type"] == "refreshlocations"):
         json_data = json.dumps(update_locations())
     else:
