@@ -7,3 +7,6 @@
 [submodule "client/js/jquery-ajax-autocomplete"]
 	path = client/js/jquery-ajax-autocomplete
 	url = https://github.com/dhiogoboza/jquery-ajax-autocomplete.git
+[submodule "client/js/jquery-hot-trends-bubbles"]
+	path = client/js/jquery-hot-trends-bubbles
+	url = https://github.com/dhiogoboza/jquery-hot-trends-bubbles.git
