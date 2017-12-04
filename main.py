@@ -16,6 +16,7 @@
 
 import logging
 import os
+import sys
 import time
 import simpleregex
 import utils
@@ -31,6 +32,8 @@ from flask import render_template
 from flask import send_from_directory
 
 import json
+
+sys.path.append("lib/")
 
 import requests
 from requests_oauthlib import OAuth1
@@ -61,6 +64,10 @@ def index():
 
 @app.route('/data', methods=['POST'])
 def data():
+    if auth is None:
+        # Init data
+        context_init()
+
     data = request.form.to_dict()
     json_data = None
     
@@ -101,6 +108,18 @@ def server_error(e):
     An internal error occurred: <pre>{}</pre>
     See logs for full stacktrace.
     """.format(e), 500
+
+@app.after_request
+def add_header(r):
+    """
+    Add headers to both force latest IE rendering engine or Chrome Frame,
+    and also to cache the rendered page for 10 minutes.
+    """
+    r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    r.headers["Pragma"] = "no-cache"
+    r.headers["Expires"] = "0"
+    r.headers['Cache-Control'] = 'public, max-age=0'
+    return r
 
 def load_events():
     if (Path(EVENTS_FILE).exists()):
@@ -290,9 +309,9 @@ def context_init():
     # Auth init
     global auth
     
-    url = URL_AUTH
     auth = OAuth1(twitter.API_KEY, twitter.API_SECRET, twitter.ACCESS_TOKEN, twitter.ACCESS_TOKEN_SECRET)
-    requests.get(url, auth=auth)
+    r = requests.get(URL_AUTH, auth=auth)
+    print("LOGIN RESULT:", r.content.decode("utf-8"))
     
     # Create /data folder if not exists
     if not Path(DATA_FOLDER).exists():

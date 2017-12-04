@@ -2,5 +2,7 @@ runtime: python
 env: flex
 entrypoint: gunicorn -b :$PORT main:app
 
+default_expiration: "5m"
+
 runtime_config:
   python_version: 3

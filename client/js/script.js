@@ -4,8 +4,8 @@ var configs = {
     main: ".w3-main",
     menu: ".w3-bar-block",
     menuWidth: "300px",
-    menuSelector: "w3-blue",
-	serverUrl: "http://localhost:8080"
+    serverUrl: "",
+    menuSelector: "w3-blue"
 }
 
 var $mySidebar, $overlayBg, $mainContent, $selectedMenu;
@@ -56,13 +56,13 @@ function drawRegionsMap(data) {
     options['width'] = container.clientWidth;
     options['height'] = container.clientHeight;
     
-    //var chart = new google.visualization.GeoChart(document.getElementById('gchart'));
-    //chart.draw(data, options);
+    var map = new google.visualization.GeoChart(container);
+    map.draw(data, options);
     
-    var geomap = new google.visualization.GeoMap(container);
-    geomap.draw(data, options);
+    //var map = new google.visualization.GeoMap(container);
+    //map.draw(data, options);
     
-    return geomap;
+    return map;
 }
 
 function updateLayout($container, offset) {
@@ -187,7 +187,7 @@ $(function() {
         'packages': ['geochart', 'geomap'],
         // Note: you will need to get a mapsApiKey for your project.
         // See: https://developers.google.com/chart/interactive/docs/basic_load_libs#load-settings
-        'mapsApiKey': 'AIzaSyA3yqnlgXnfqj3Los7Rn2S6Ncs6t8z8Pxk'
+        'mapsApiKey': 'AIzaSyD6ZpKmcxnM6B3A8H0WrDyVZfO5wrHQfJo'//AIzaSyA3yqnlgXnfqj3Los7Rn2S6Ncs6t8z8Pxk'
     });
 
     //google.charts.setOnLoadCallback(drawRegionsMap);*/
