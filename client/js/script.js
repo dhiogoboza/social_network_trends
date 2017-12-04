@@ -86,8 +86,11 @@ function showSubjectInPlacesHistoryChart() {
         
         var date_str;
         var dates = [];
+                
         while (start <= end) {
-            date_str = start.formatString("D-m-YYYY");
+            date_str = start.formatString("DD-m-YYYY");
+            
+            console.log(date_str)
             
             if (date_str in json && json[date_str]["rows"].length > 0) {
                 dates.push(start);
@@ -97,14 +100,20 @@ function showSubjectInPlacesHistoryChart() {
             start = new Date(startClone.setUTCDate(startClone.getUTCDate() + 1));
         }
         
-        $("#timeline").timeline({
-            dates: dates,
-            onSelection: function(date) {
-                updateLayout($("#gchart"), 50);
-                var data = new google.visualization.DataTable(json[date]);
-                drawRegionsMap(data);
-            }
-        });
+        if (dates.length > 0) {
+            $("#timeline").timeline({
+                dates: dates,
+                onSelection: function(date) {
+                    updateLayout($("#gchart"), 50);
+                    var data = new google.visualization.DataTable(json[date]);
+                    drawRegionsMap(data);
+                }
+            });
+        } else {
+            $("#gchart").empty();
+            $("#timeline").empty();
+            alert("Nenhum dado");
+        }
     });
 }
 

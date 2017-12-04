@@ -252,8 +252,9 @@ def get_subject_relevance_in_places(date, subject_regex, locations):
     })
     
     for key, location_data in all_data.items():
-        location_json = {"c":[{"v": location_data["country"]},{"v": str(location_data["rate"])}]}
-        chart_data["rows"].append(location_json)
+        if location_data["rate"] != 0:
+            location_json = {"c":[{"v": location_data["country"]},{"v": str(location_data["rate"])}]}
+            chart_data["rows"].append(location_json)
         
     return chart_data
 
