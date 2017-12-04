@@ -131,6 +131,10 @@ function showAllSubjectsInPlace() {
         updateLayout($("#gchart"));
         
         console.log(json);
+        
+        $("#gchart").hotTrendsBubbles({
+            data: json
+        });
     });
 }
 
