@@ -162,7 +162,7 @@ def get_trends_in_place(now, woeid, history=False):
     data_path = data_path + str(woeid) + ".dat"
     
     if (cache and Path(data_path).exists()):
-        with open(data_path) as json_file:  
+        with open(data_path) as json_file:
             return json.load(json_file)
     
     # Only search at history
@@ -184,7 +184,7 @@ def get_trends_in_place(now, woeid, history=False):
     
     return ""
 
-def get_subject_relevance_in_places(date, subject_regex, locations):
+def get_subject_relevance_in_places(date, subject_regex, locations, relative=False):
     '''
     Get subject relevance in all {locations} array
     
@@ -221,7 +221,7 @@ def get_subject_relevance_in_places(date, subject_regex, locations):
                     current_data["tweet_volume"] = trend["tweet_volume"] if trend["tweet_volume"]!=None else 0
                     all_location_data.append(current_data)
                 
-                all_location_data = sorted(all_location_data, key=get_trend_key, reverse=True)
+                #all_location_data = sorted(all_location_data, key=get_trend_key, reverse=True)
                 #print("all_location_data",all_location_data)
                 
                 rate = 100
@@ -231,13 +231,17 @@ def get_subject_relevance_in_places(date, subject_regex, locations):
                     # Check if subjetc matches query
                     if (simpleregex.match(subject_regex, trend["name"])):
                         found = True
+                        if not relative:
+                            rate = trend["tweet_volume"] if trend["tweet_volume"]!=None else 10
                         break
-                    rate = rate - dr
+                        
+                    if relative:
+                        rate = rate - dr
                 
                 if not found:
                     rate = 0
                 
-                location_data = {"country": location["name"], "rate": rate}
+                location_data = {"country": location["name"], "rate": int(rate)}
                 if (location["woeid"] in all_data):
                     location_data["rate"] = location_data["rate"] + all_data[location["woeid"]]["rate"]
                 else:  
@@ -272,7 +276,7 @@ def get_chart(data):
         now = str(time.strftime("%d-%m-%Y"))
         locations = load_locations()
         
-        return json.dumps(get_subject_relevance_in_places(now, subject_regex, locations))
+        return json.dumps(get_subject_relevance_in_places(now, subject_regex, locations, data["ctype"] == "r"))
     # End subjectinplaces
     
     elif (data["type"] == "subjectinplaceshistory"):
@@ -290,7 +294,7 @@ def get_chart(data):
         
         for current in utils.daterange(start_date, end_date + timedelta(days=1)):
             current_str = str(current.strftime("%d-%m-%Y"))
-            all_data[current_str] = get_subject_relevance_in_places(current_str, sr, locations)
+            all_data[current_str] = get_subject_relevance_in_places(current_str, sr, locations, data["ctype"] == "r")
         
         return json.dumps(all_data)
         
@@ -299,7 +303,7 @@ def get_chart(data):
     elif (data["type"] == "subjectsinplace"):
         data = get_trends_in_place(str(time.strftime("%d-%m-%Y")), data["location"])
         
-        print(data[0]["trends"])
+        #print(data[0]["trends"])
         
         return json.dumps(data[0]["trends"])
         

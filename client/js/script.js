@@ -78,7 +78,7 @@ function showSubjectInPlacesHistoryChart() {
     var end_date = $("#ends").val();
 
     requestData("subjectinplaceshistory", "subject=" + $("#subject").val() +
-            "&starts=" + start_date + "&ends=" + end_date, function(json) {
+            "&starts=" + start_date + "&ends=" + end_date + "&ctype=" + $("#ctype").val(), function(json) {
         updateLayout($("#gchart"), 50);
         
         var start = new Date(start_date).convertToUTC();
@@ -118,7 +118,7 @@ function showSubjectInPlacesHistoryChart() {
 }
 
 function showSubjectInPlacesChart() {
-    requestData("subjectinplaces", "subject=" + $("#subject").val(), function(json) {
+    requestData("subjectinplaces", "subject=" + $("#subject").val() + "&ctype=" + $("#ctype").val(), function(json) {
         updateLayout($("#gchart"));
         
         var data = new google.visualization.DataTable(json);

@@ -7,6 +7,11 @@
 <div class="w3-panel">
     <div class="w3-row-padding" style="margin:0 -16px">
         <label for="subject">Assunto:</label> <input type="text" value="*World*" id="subject"/>
+        <label for="ctype">Tipo:</label>
+        <select id="ctype">
+            <option value="a">Absoluto</option>
+            <option value="r">Relativo</option>
+        </select>
         <input type="button" onclick="showSubjectInPlacesChart()" value="Ok" />
         <div class="w3-col" style="padding-right: 40px">
             <div id="gchart">
