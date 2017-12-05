@@ -133,7 +133,9 @@ function showAllSubjectsInPlace() {
         console.log(json);
         
         $("#gchart").hotTrendsBubbles({
-            data: json
+            data: json,
+            key: "name",
+            value: "tweet_volume"
         });
     });
 }

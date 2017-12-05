@@ -225,13 +225,14 @@ def get_subject_relevance_in_places(date, subject_regex, locations):
                 #print("all_location_data",all_location_data)
                 
                 rate = 100
+                dr = rate / len(all_location_data)
                 found = False
                 for trend in all_location_data:
                     # Check if subjetc matches query
                     if (simpleregex.match(subject_regex, trend["name"])):
                         found = True
                         break
-                    rate = rate - 2
+                    rate = rate - dr
                 
                 if not found:
                     rate = 0
