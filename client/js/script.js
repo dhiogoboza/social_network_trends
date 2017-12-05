@@ -127,16 +127,21 @@ function showSubjectInPlacesChart() {
 }
 
 function showAllSubjectsInPlace() {
-    requestData("subjectsinplace", "location=" + $("#location").val(), function(json) {
+    requestData("subjectsinplace", "location=" + $("#location").val() + "&date=" + $("#date").val(), function(json) {
         updateLayout($("#gchart"));
         
         console.log(json);
         
-        $("#gchart").hotTrendsBubbles({
-            data: json,
-            key: "name",
-            value: "tweet_volume"
-        });
+        if ("error" in json) {
+            $("#gchart").empty();
+            alert(json["error"]);
+        } else {
+            $("#gchart").hotTrendsBubbles({
+                data: json,
+                key: "name",
+                value: "tweet_volume"
+            });
+        }
     });
 }
 

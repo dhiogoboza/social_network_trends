@@ -94,8 +94,10 @@ def data():
 @app.route('/tasks/update_data', methods=['GET'])
 def update_data():
     data = {}
-    data["type"] = "subjectinplaces"
+    
+    data["type"] = "subjectinplaces-all"
     data["subject"] = "none"
+    data["all_locations"] = True
     
     get_chart(data)
     
@@ -153,6 +155,7 @@ def get_trends_in_place(now, woeid, history=False):
     Get trends in place, current date and place (woeid)
     https://developer.twitter.com/en/docs/trends/trends-for-location/api-reference/get-trends-place
     '''
+    print('get_trends_in_place:',now,history)
     cache = True
     data_path = TRENDS_PLACE_FOLDER + now + "/"
     if (not Path(data_path).exists() and not history):
@@ -163,6 +166,7 @@ def get_trends_in_place(now, woeid, history=False):
     
     if (cache and Path(data_path).exists()):
         with open(data_path) as json_file:
+            print("returning from cache")
             return json.load(json_file)
     
     # Only search at history
@@ -184,7 +188,7 @@ def get_trends_in_place(now, woeid, history=False):
     
     return ""
 
-def get_subject_relevance_in_places(date, subject_regex, locations, relative=False):
+def get_subject_relevance_in_places(date, subject_regex, locations, relative=False, all_locations=False):
     '''
     Get subject relevance in all {locations} array
     
@@ -248,6 +252,8 @@ def get_subject_relevance_in_places(date, subject_regex, locations, relative=Fal
                     all_data[location["woeid"]] = location_data
             else:
                 break;
+        elif all_locations:
+            get_trends_in_place(date, location["woeid"], history=history)
     
     print("All data", date, ":", all_data)
     
@@ -268,6 +274,9 @@ def get_chart(data):
     
     if (data["type"] == "subjectinplaces"):
         
+        if "all_locations" in data:
+            all_locations = True
+        
         subject = data["subject"].strip()
         if (subject == ""):
             return "{'error':'Empty subject'}"
@@ -276,7 +285,7 @@ def get_chart(data):
         now = str(time.strftime("%d-%m-%Y"))
         locations = load_locations()
         
-        return json.dumps(get_subject_relevance_in_places(now, subject_regex, locations, data["ctype"] == "r"))
+        return json.dumps(get_subject_relevance_in_places(now, subject_regex, locations, data["ctype"] == "r", all_locations=all_locations))
     # End subjectinplaces
     
     elif (data["type"] == "subjectinplaceshistory"):
@@ -301,11 +310,19 @@ def get_chart(data):
     # End subjectinplaceshistory
     
     elif (data["type"] == "subjectsinplace"):
-        data = get_trends_in_place(str(time.strftime("%d-%m-%Y")), data["location"])
+        date = str(datetime.strptime(data["date"], "%Y-%m-%d").date().strftime("%d-%m-%Y"))
+        
+        now = str(time.strftime("%d-%m-%Y"))
+        history = False
+        
+        if (now != date):
+            history = True
+        
+        data = get_trends_in_place(date, data["location"], history=history)
         
         #print(data[0]["trends"])
         
-        return json.dumps(data[0]["trends"])
+        return json.dumps(data[0]["trends"]) if data != "" else '{"error": "Data not found"}'
         
     # End subjectsinplace
         
