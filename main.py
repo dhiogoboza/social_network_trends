@@ -95,8 +95,9 @@ def data():
 def update_data():
     data = {}
     
-    data["type"] = "subjectinplaces-all"
+    data["type"] = "subjectinplaces"
     data["subject"] = "none"
+    data["ctype"] = "a"
     data["all_locations"] = True
     
     get_chart(data)
@@ -236,7 +237,7 @@ def get_subject_relevance_in_places(date, subject_regex, locations, relative=Fal
                     if (simpleregex.match(subject_regex, trend["name"])):
                         found = True
                         if not relative:
-                            rate = trend["tweet_volume"] if trend["tweet_volume"]!=None else 10
+                            rate = trend["tweet_volume"] if trend["tweet_volume"]!=0 else 404
                         break
                         
                     if relative:
@@ -285,7 +286,7 @@ def get_chart(data):
         now = str(time.strftime("%d-%m-%Y"))
         locations = load_locations()
         
-        return json.dumps(get_subject_relevance_in_places(now, subject_regex, locations, data["ctype"] == "r", all_locations=all_locations))
+        return json.dumps(get_subject_relevance_in_places(now, subject_regex, locations, data["ctype"] == "r"))
     # End subjectinplaces
     
     elif (data["type"] == "subjectinplaceshistory"):
