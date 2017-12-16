@@ -11,8 +11,8 @@ Tool to show trending toopics in places based o twitter API. This project is res
 
 ## Contributors
 
-Dhiogo Boza <dhiogoboza@gmail.com>
-Evandro Carlos <evandro.carlos92@gmail.com>
+* Dhiogo Boza <dhiogoboza@gmail.com>
+* Evandro Carlos <evandro.carlos92@gmail.com>
 
 ## Available at
 
