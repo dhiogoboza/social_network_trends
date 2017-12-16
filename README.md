@@ -6,8 +6,8 @@ Tool to show trending toopics in places based o twitter API. This project is res
 
 ## Screenshots
 
-![Relevance of "World" at world](/screenshots/screenshot01.png?raw=true "Screenshot 01")
-![Trending topics at Brazil](/screenshots/screenshot02.png?raw=true "Screenshot 02")
+![Screenshot 01](/screenshots/screenshot01.png?raw=true "Relevance of 'World' at world")
+![Screenshot 02](/screenshots/screenshot02.png?raw=true "Trending topics at Brazil")
 
 ## Contributors
 
