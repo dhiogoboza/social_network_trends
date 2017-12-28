@@ -47,6 +47,20 @@ class TwitterAPI:
             self.status_code = status_code
             self.headers = headers
 
+    class UnauthenticatedError(Exception):
+        """
+        UnauthenticatedError for Twitter API
+
+        Thrown when a method that requires authentication is called
+        without bearer_token
+        """
+
+        def __init__(self):
+            self.value = 'Session is not authenticated. Call auth() with proper configuration'
+
+        def __str__(self):
+            return repr(self.value)
+
     def __init__(self, options, requestor):
         """
         Twitter API constructor
@@ -65,6 +79,7 @@ class TwitterAPI:
     def auth(self):
         """
         Authenticate this instance on Twitter REST API
+        https://developer.twitter.com/en/docs/basics/authentication/overview/application-only
         """
         # do nothing if bearer_token exists
         if self.isAuthenticated():
@@ -86,7 +101,7 @@ class TwitterAPI:
         # TODO(ruben): handle exceptions, ie timeout and etc
         response = self.requestor.request('https://api.twitter.com/oauth2/token',
                 payload='grant_type=client_credentials',
-                headers={'Authorization': 'Basic: ' + bearer_token_credentials})
+                headers={'Authorization': 'Basic ' + bearer_token_credentials})
 
         if response.status_code == 200:
             # parse JSON response
@@ -97,3 +112,55 @@ class TwitterAPI:
                 self.bearer_token = data['access_token']
             else:
                 self.bearer_token = None
+
+    def get_trends_place(self, woeid):
+        """
+        Returns the top 50 trending topics for a specific WOEID, if trending
+        information is available for it.
+
+        WOEID stands for Yahoo! Where On Earth ID of the location to return
+        trending information for.
+        Global information is available by using 1 as the WOEID.
+        See more on http://developer.yahoo.com/geo/geoplanet/
+        """
+
+        # raise unauthenticated error if not properly authenticated
+        if not self.isAuthenticated():
+            raise UnauthenticatedError()
+
+        # request trends information for location
+        # TODO(ruben): handle exceptions, ie timeout and etc
+        response = self.requestor.request('https://api.twitter.com/1.1/trends/place.json?id=' + woeid,
+                headers={'Authorization': 'Bearer ' + b64encode(self.bearer_token)})
+
+        if response.status_code == 200:
+            return response.data
+        else:
+            return '[]'
+
+    def get_trends_available(self):
+        """
+        Returns the locations that Twitter has trending topic information for.
+
+        The response is an array of "locations" that encode the location's WOEID
+        and some other human-readable information such as a canonical name and
+        country the location belongs in.
+
+        WOEID stands for Yahoo! Where On Earth ID of the location to return
+        trending information for.
+        See more on http://developer.yahoo.com/geo/geoplanet/
+        """
+
+        # raise unauthenticated error if not properly authenticated
+        if not self.isAuthenticated():
+            raise UnauthenticatedError()
+
+        # request trends information for location
+        # TODO(ruben): handle exceptions, ie timeout and etc
+        response = self.requestor.request('https://api.twitter.com/1.1/trends/available.json',
+                headers={'Authorization': 'Bearer ' + b64encode(self.bearer_token)})
+
+        if response.status_code == 200:
+            return response.data
+        else:
+            return '[]'
