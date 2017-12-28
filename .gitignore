@@ -2,5 +2,5 @@
 __pycache__/
 /data
 env/
-/twitter.py
+api/twitter_credentials.py
 /lib
