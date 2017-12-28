@@ -100,12 +100,14 @@ class TwitterAPI:
         # request bearer token
         # TODO(ruben): handle exceptions, ie timeout and etc
         response = self.requestor.request('https://api.twitter.com/oauth2/token',
+                method=TwitterAPI.Requestor.POST,
                 payload='grant_type=client_credentials',
-                headers={'Authorization': 'Basic ' + bearer_token_credentials})
+                headers={'Authorization': 'Basic ' + bearer_token_credentials,
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'})
 
         if response.status_code == 200:
             # parse JSON response
-            data = json.load(response.data)
+            data = json.loads(response.data)
 
             # check for access token on data
             if 'token_type' in data and data['token_type'] == 'bearer' and 'access_token' in data:
