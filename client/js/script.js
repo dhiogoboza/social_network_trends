@@ -4,7 +4,7 @@ var configs = {
     main: ".w3-main",
     menu: ".w3-bar-block",
     menuWidth: "300px",
-    serverUrl: "",
+    serverUrl: "api",
     menuSelector: "w3-blue"
 }
 
@@ -50,18 +50,18 @@ function requestData(type, data, callback) {
 
 function drawRegionsMap(data) {
     var container = document.getElementById('gchart');
-    
+
     var options = {};
     options['dataMode'] = 'regions';
     options['width'] = container.clientWidth;
     options['height'] = container.clientHeight;
-    
+
     var map = new google.visualization.GeoChart(container);
     map.draw(data, options);
-    
+
     //var map = new google.visualization.GeoMap(container);
     //map.draw(data, options);
-    
+
     return map;
 }
 
@@ -80,26 +80,26 @@ function showSubjectInPlacesHistoryChart() {
     requestData("subjectinplaceshistory", "subject=" + $("#subject").val() +
             "&starts=" + start_date + "&ends=" + end_date + "&ctype=" + $("#ctype").val(), function(json) {
         updateLayout($("#gchart"), 50);
-        
+
         var start = new Date(start_date).convertToUTC();
         var end = new Date(end_date).convertToUTC();
-        
+
         var date_str;
         var dates = [];
-                
+
         while (start <= end) {
             date_str = start.formatString("DD-m-YYYY");
-            
+
             console.log(date_str)
-            
+
             if (date_str in json && json[date_str]["rows"].length > 0) {
                 dates.push(start);
             }
-            
+
             var startClone = new Date(start);
             start = new Date(startClone.setUTCDate(startClone.getUTCDate() + 1));
         }
-        
+
         if (dates.length > 0) {
             $("#timeline").timeline({
                 dates: dates,
@@ -120,7 +120,7 @@ function showSubjectInPlacesHistoryChart() {
 function showSubjectInPlacesChart() {
     requestData("subjectinplaces", "subject=" + $("#subject").val() + "&ctype=" + $("#ctype").val(), function(json) {
         updateLayout($("#gchart"));
-        
+
         var data = new google.visualization.DataTable(json);
         drawRegionsMap(data);
     });
@@ -129,9 +129,9 @@ function showSubjectInPlacesChart() {
 function showAllSubjectsInPlace() {
     requestData("subjectsinplace", "location=" + $("#location").val() + "&date=" + $("#date").val(), function(json) {
         updateLayout($("#gchart"));
-        
+
         console.log(json);
-        
+
         if ("error" in json) {
             $("#gchart").empty();
             alert(json["error"]);
@@ -148,7 +148,7 @@ function showAllSubjectsInPlace() {
 function scrollToParent(parentId) {
     var $container = $('.container');
     var offset = $container.offset().top;
-    
+
     $container.animate({
         scrollTop: $("#" + parentId).offset().top - offset - 40
     }, 200);
@@ -169,10 +169,10 @@ function loadLocations() {
 function showLocations(json) {
     var $locations_table = $("#locations_table");
     $("tr:gt(0)", $locations_table).remove();
-    
+
     for (var i = 0; i < json.length; i++) {
       var obj = json[i];
-      
+
       $tr = $("<tr />").html("<td><a id=" + obj["woeid"] +
             "></a>" + obj["woeid"] + "</td>" +
             "<td>" + obj["name"] + "</td>" +
@@ -181,7 +181,7 @@ function showLocations(json) {
             "<td>" + (obj["parentid"] !== "0"? "<a onClick='scrollToParent(\"" + obj["parentid"] + "\")' href='#'>" : "") +
             obj["parentid"] + (obj["parentid"] !== "0"? "</a>" : "") + "</td>"
       );
-      
+
       $locations_table.append($tr);
     }
 }
@@ -191,18 +191,18 @@ $(function() {
     $overlayBg = $(configs.overlay);
     $mainContent = $(configs.main);
     $selectedMenu = $(configs.menu + " ." + configs.menuSelector);
-    
+
     $(configs.menu + ' a:not(.w3-hide-large)').on("click", function (e) {
         $selectedMenu.removeClass(configs.menuSelector);
         $selectedMenu = $(this);
-        
+
         open($selectedMenu.attr("href"));
-        
+
         $selectedMenu.addClass(configs.menuSelector);
-        
+
         e.preventDefault();
     });
-        
+
     google.charts.load('current', {
         'packages': ['geochart', 'geomap'],
         // Note: you will need to get a mapsApiKey for your project.
@@ -211,7 +211,7 @@ $(function() {
     });
 
     //google.charts.setOnLoadCallback(drawRegionsMap);*/
-    
+
     $(document)
         .ajaxStart(function(){
             $("#loader").show();
