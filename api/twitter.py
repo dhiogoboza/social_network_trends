@@ -118,6 +118,8 @@ class TwitterAPI:
         Returns the top 50 trending topics for a specific WOEID, if trending
         information is available for it.
 
+        https://developer.twitter.com/en/docs/trends/trends-for-location/api-reference/get-trends-place
+
         WOEID stands for Yahoo! Where On Earth ID of the location to return
         trending information for.
         Global information is available by using 1 as the WOEID.
@@ -142,6 +144,8 @@ class TwitterAPI:
         """
         Returns the locations that Twitter has trending topic information for.
 
+        https://developer.twitter.com/en/docs/trends/locations-with-trending-topics/api-reference/get-trends-available
+
         The response is an array of "locations" that encode the location's WOEID
         and some other human-readable information such as a canonical name and
         country the location belongs in.
@@ -155,7 +159,7 @@ class TwitterAPI:
         if not self.isAuthenticated():
             raise UnauthenticatedError()
 
-        # request trends information for location
+        # request places with trends information available
         # TODO(ruben): handle exceptions, ie timeout and etc
         response = self.requestor.request('https://api.twitter.com/1.1/trends/available.json',
                 headers={'Authorization': 'Bearer ' + b64encode(self.bearer_token)})

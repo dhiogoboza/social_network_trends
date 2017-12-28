@@ -24,7 +24,8 @@ class URLFetchRequestor(TwitterAPI.Requestor):
                 status_code=response.status_code,
                 headers=response.headers)
 
-twitter_api = TwitterAPI(options={'consumer_key': twitter_credentials.API_KEY,
+twitter_api = TwitterAPI(options={
+        'consumer_key': twitter_credentials.API_KEY,
         'consumer_secret': twitter_credentials.API_SECRET},
         requestor=URLFetchRequestor())
 
