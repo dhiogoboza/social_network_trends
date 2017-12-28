@@ -1,8 +1,47 @@
-runtime: python
-env: flex
-entrypoint: gunicorn -b :$PORT main:app
+runtime: python27
+api_version: 1
+threadsafe: true
 
-default_expiration: "5m"
+handlers:
+- url: /
+  static_files: client/index.html
+  upload: client/index.html
+  secure: always
 
-runtime_config:
-  python_version: 3
+- url: /index\.html
+  static_files: client/index.html
+  upload: client/index.html
+  secure: always
+
+- url: /charts/(.*)
+  static_files: client/charts/\1
+  upload: client/charts/(.*)
+  secure: always
+
+- url: /css/(.*)
+  static_files: client/css/\1
+  upload: client/css/(.*)
+  secure: always
+
+- url: /img/(.*)
+  static_files: client/img/\1
+  upload: client/img/(.*)
+  secure: always
+
+- url: /js/(.*)
+  static_files: client/js/\1
+  upload: client/js/(.*)
+  secure: always
+
+- url: /options/(.*)
+  static_files: client/options/\1
+  upload: client/options/(.*)
+  secure: always
+
+- url: /robots.txt
+  static_files: robots.txt
+  upload: robots.txt
+
+- url: /api/.*
+  script: api.snt.app
+  secure: always
