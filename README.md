@@ -39,6 +39,7 @@ gcloud app deploy
 
 * Dhiogo Boza <dhiogoboza@gmail.com>
 * Evandro Carlos <evandro.carlos92@gmail.com>
+* Ruben Oliveira Chiavone <rubenochiavone@gmail.com>
 
 ## Available at
 
