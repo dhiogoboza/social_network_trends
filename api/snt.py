@@ -1,9 +1,15 @@
 ## Social Network Trends API
 #
 
+from datetime import datetime
+from datetime import timedelta
+
 import json
 import logging
+import simpleregex
+import time
 from urlparse import parse_qsl
+import utils
 import webapp2
 
 from google.appengine.api import urlfetch
@@ -66,16 +72,119 @@ def update_locations():
         location.placeTypeName = twitter_location['placeType']['name']
         location.url = twitter_location['url']
         location.woeid = twitter_location['woeid']
-
-        location_key = location.put()
-
-        print(location_key)
+        location.put()
 
     return load_locations()
+
+def get_trends_in_place(now, woeid, history=False):
+    '''
+    Get trends in place, current date and place (woeid)
+    https://developer.twitter.com/en/docs/trends/trends-for-location/api-reference/get-trends-place
+    '''
+    # FIXME(ruben): get_trends_in_place
+    print('get_trends_in_place:',now,history)
+    cache = True
+
+    # TODO(ruben): check for history
+
+    # Only search at history
+    if (history):
+        return ""
+
+    # If data is not in cache do request
+    if not twitter_api.isAuthenticated():
+        twitter_api.auth()
+
+    result = json.loads(twitter_api.get_trends_place(woeid))
+
+    if (isinstance(result, list)):
+        # TODO(ruben): persist result
+        return result
+    else:
+        print("Error:", result)
+
+    return ""
+
+def get_subject_relevance_in_places(date, subject_regex, locations, relative=False, all_locations=False):
+    '''
+    Get subject relevance in all {locations} array
+
+    @type date: string
+    @param date: Date from get subject relevance
+
+    @type subject_regex: json
+    @param subject_regex: Simple regex with searched subject (use simpleregex.create)
+
+    @type locations: array
+    @param locations: Array with locations to get subject relevance
+
+    @rtype: json
+    @return: Json array with Google Map table to draw the map
+    '''
+    # FIXME(ruben): get_subject_relevance_in_places
+    print('get_subject_relevance_in_places')
+    return '[]'
 
 def get_chart(data):
     # FIXME: get_chart
     print("FIXME: get_chart")
+
+    print("data:", data)
+
+    if (data["type"] == "subjectinplaces"):
+
+        if "all_locations" in data:
+            all_locations = True
+
+        subject = data["subject"].strip()
+        if (subject == ""):
+            return "{'error':'Empty subject'}"
+
+        subject_regex = simpleregex.create(subject)
+        now = str(time.strftime("%d-%m-%Y"))
+        locations = load_locations()
+
+        return json.dumps(get_subject_relevance_in_places(now, subject_regex, locations, data["ctype"] == "r"))
+    # End subjectinplaces
+
+    elif (data["type"] == "subjectinplaceshistory"):
+        subject = data["subject"].strip()
+        if (subject == ""):
+            return "{'error':'Empty subject'}"
+
+        start_date = datetime.strptime(data["starts"], "%Y-%m-%d").date()
+        end_date = datetime.strptime(data["ends"], "%Y-%m-%d").date()
+
+        sr = simpleregex.create(subject)
+        locations = load_locations()
+
+        all_data = {}
+
+        for current in utils.daterange(start_date, end_date + timedelta(days=1)):
+            current_str = str(current.strftime("%d-%m-%Y"))
+            all_data[current_str] = get_subject_relevance_in_places(current_str, sr, locations, data["ctype"] == "r")
+
+        return json.dumps(all_data)
+
+    # End subjectinplaceshistory
+
+    elif (data["type"] == "subjectsinplace"):
+        date = str(datetime.strptime(data["date"], "%Y-%m-%d").date().strftime("%d-%m-%Y"))
+
+        now = str(time.strftime("%d-%m-%Y"))
+        history = False
+
+        if (now != date):
+            history = True
+
+        data = get_trends_in_place(date, data["location"], history=history)
+
+        #print(data[0]["trends"])
+
+        return json.dumps(data[0]["trends"]) if data != "" else '{"error": "Data not found"}'
+
+    # End subjectsinplace
+
     return '[]'
 
 class SNTDataHandler(webapp2.RequestHandler):
