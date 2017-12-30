@@ -61,6 +61,20 @@ class TwitterAPI:
         def __str__(self):
             return repr(self.value)
 
+    class InvalidAuthSessionError(Exception):
+        """
+        InvalidAuthSessionError for Twitter API
+
+        Thrown when a method that requires authentication is called
+        and 401 is returned as status code
+        """
+
+        def __init__(self):
+            self.value = 'Invalid or expired token. Call auth() with proper configuration'
+
+        def __str__(self):
+            return repr(self.value)
+
     def __init__(self, options, requestor):
         """
         Twitter API constructor
@@ -102,8 +116,10 @@ class TwitterAPI:
         response = self.requestor.request('https://api.twitter.com/oauth2/token',
                 method=TwitterAPI.Requestor.POST,
                 payload='grant_type=client_credentials',
-                headers={'Authorization': 'Basic ' + bearer_token_credentials,
-                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'})
+                headers={
+                        'Authorization': 'Basic ' + bearer_token_credentials,
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                })
 
         if response.status_code == 200:
             # parse JSON response
@@ -135,10 +151,13 @@ class TwitterAPI:
         # request trends information for location
         # TODO(ruben): handle exceptions, ie timeout and etc
         response = self.requestor.request('https://api.twitter.com/1.1/trends/place.json?id=' + woeid,
-                headers={'Authorization': 'Bearer ' + b64encode(self.bearer_token)})
+                headers={'Authorization': 'Bearer ' + self.bearer_token})
 
         if response.status_code == 200:
             return response.data
+        elif response.status_code == 401:
+            self.bearer_token = None
+            raise InvalidAuthSessionError()
         else:
             return '[]'
 
@@ -164,9 +183,12 @@ class TwitterAPI:
         # request places with trends information available
         # TODO(ruben): handle exceptions, ie timeout and etc
         response = self.requestor.request('https://api.twitter.com/1.1/trends/available.json',
-                headers={'Authorization': 'Bearer ' + b64encode(self.bearer_token)})
+                headers={'Authorization': 'Bearer ' + self.bearer_token})
 
         if response.status_code == 200:
             return response.data
+        elif response.status_code == 401:
+            self.bearer_token = None
+            raise InvalidAuthSessionError()
         else:
             return '[]'
