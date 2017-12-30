@@ -21,12 +21,12 @@
     $(function() {
         var now = new Date();
         $("#date").val(now.toDateInputValue());
-        
+
         $("#location").autocomplete({
-            url: "data",
+            url: "api/data",
             data: "type=locations",
             onSelection: function (id, name) {
-                
+
             }
         });
     });
