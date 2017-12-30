@@ -1,17 +1,20 @@
 ## Social Network Trends API
 #
 
-import webapp2
+import json
 import logging
-from urlparse import parse_qs
+from urlparse import parse_qsl
+import webapp2
 
 from google.appengine.api import urlfetch
+
+from location import Location
 
 from twitter import TwitterAPI
 import twitter_credentials
 
 class URLFetchRequestor(TwitterAPI.Requestor):
-    def request(self, url, payload=None, method=1,
+    def request(self, url, payload=None, method=TwitterAPI.Requestor.GET,
             headers={}, follow_redirects=True, validate_certificate=None):
         """
         Requests the given HTTP URL using Google AppEngine urlfetch
@@ -30,14 +33,45 @@ twitter_api = TwitterAPI(options={
         requestor=URLFetchRequestor())
 
 def load_locations():
-    # FIXME: load_locations
-    print("FIXME: load_locations")
-    return []
+    allQuery = Location.query()
+    locations = []
+
+    for location in allQuery.iter():
+        locations.append(location.to_dict())
+
+    return locations
 
 def update_locations():
-    # FIXME: update_locations
-    print("FIXME: update_locations")
-    return []
+    # FIXME(ruben): too costy operation (a lot of db write),
+    # [...] should prevent user from multiple calls to this method.
+    # [...] Possible workaround is to remove 'Atualizar' button from gui
+    if not twitter_api.isAuthenticated():
+        twitter_api.auth()
+
+    # parse JSON
+    twitter_locations = json.loads(twitter_api.get_trends_available())
+
+    locations = []
+
+    for twitter_location in twitter_locations:
+        queryResult = Location.query(Location.woeid == twitter_location['woeid']).fetch(1)
+
+        location = (queryResult[0] if len(queryResult) == 1 else Location())
+        # FIXME(ruben): check keys before assignment
+        location.country = twitter_location['country']
+        location.countryCode = twitter_location['countryCode']
+        location.name = twitter_location['name']
+        location.parentid = twitter_location['parentid']
+        location.placeTypeCode = twitter_location['placeType']['code']
+        location.placeTypeName = twitter_location['placeType']['name']
+        location.url = twitter_location['url']
+        location.woeid = twitter_location['woeid']
+
+        location_key = location.put()
+
+        print(location_key)
+
+    return load_locations()
 
 def get_chart(data):
     # FIXME: get_chart
@@ -49,7 +83,10 @@ class SNTDataHandler(webapp2.RequestHandler):
         if not twitter_api.isAuthenticated():
             twitter_api.auth()
 
-        data = parse_qs(self.request.body)
+        data = {}
+        for name, value in parse_qsl(self.request.body):
+            data[name] = value
+
         json_data = None
 
         if (data["type"] == "locations"):
