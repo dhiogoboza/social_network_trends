@@ -13,8 +13,11 @@ import utils
 import webapp2
 
 from google.appengine.api import urlfetch
+from google.appengine.ext import ndb
 
 from location import Location
+from trend import Trend
+from trend_history import TrendHistory
 
 from twitter import TwitterAPI
 import twitter_credentials
@@ -72,7 +75,11 @@ def update_locations():
         location.placeTypeName = twitter_location['placeType']['name']
         location.url = twitter_location['url']
         location.woeid = twitter_location['woeid']
-        location.put()
+
+        locations.append(location)
+
+    if len(locations) > 0:
+        ndb.put_multi(locations)
 
     return load_locations()
 
@@ -88,8 +95,8 @@ def get_trends_in_place(now, woeid, history=False):
     # TODO(ruben): check for history
 
     # Only search at history
-    if (history):
-        return ""
+    #if (history):
+    #    return ""
 
     # If data is not in cache do request
     if not twitter_api.isAuthenticated():
@@ -98,7 +105,43 @@ def get_trends_in_place(now, woeid, history=False):
     result = json.loads(twitter_api.get_trends_place(woeid))
 
     if (isinstance(result, list)):
-        # TODO(ruben): persist result
+        # persist result
+        trends = []
+        for twitter_trend in result[0]['trends']:
+            queryResult = Trend.query(Trend.name == twitter_trend['name']).fetch(1)
+
+            trend = (queryResult[0] if len(queryResult) == 1 else Trend())
+            # FIXME(ruben): check keys before assignment
+            trend.name = twitter_trend['name']
+            trend.promoted_content = twitter_trend['promoted_content']
+            trend.query_string = twitter_trend['query']
+            trend.url = twitter_trend['url']
+            trend.tweet_volume = twitter_trend['tweet_volume']
+            # increases search count, if trend already exists
+            trend.search_count = (trend.search_count + 1 if len(queryResult) == 1 else 1)
+
+            trends.append(trend)
+
+        if len(trends) > 0:
+            ndb.put_multi(trends)
+
+        # create trend history
+        # FIXME(ruben): check keys before using it
+        location = Location.query( \
+                Location.woeid == result[0]['locations'][0]['woeid']).fetch(1)[0]
+
+        if location is None:
+            # TODO(ruben): create new location for this woeid
+            pass
+
+        print(location)
+
+        trend_history = TrendHistory()
+        trend_history.date = now
+        trend_history.trends = trends
+        trend_history.location = location
+        print(trend_history.put())
+
         return result
     else:
         print("Error:", result)
@@ -169,17 +212,10 @@ def get_chart(data):
     # End subjectinplaceshistory
 
     elif (data["type"] == "subjectsinplace"):
-        date = str(datetime.strptime(data["date"], "%Y-%m-%d").date().strftime("%d-%m-%Y"))
-
-        now = str(time.strftime("%d-%m-%Y"))
-        history = False
-
-        if (now != date):
-            history = True
+        date = datetime.strptime(data["date"], "%Y-%m-%d").date()
+        history = date != datetime.now().date()
 
         data = get_trends_in_place(date, data["location"], history=history)
-
-        #print(data[0]["trends"])
 
         return json.dumps(data[0]["trends"]) if data != "" else '{"error": "Data not found"}'
 
