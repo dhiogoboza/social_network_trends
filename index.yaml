@@ -2,3 +2,6 @@ indexes:
 - kind: Location
   properties:
   - name: woeid
+- kind: Trend
+  properties:
+  - name: name
