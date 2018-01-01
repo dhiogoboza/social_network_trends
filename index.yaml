@@ -5,3 +5,7 @@ indexes:
 - kind: Trend
   properties:
   - name: name
+- kind: TrendHistory
+  properties:
+  - name: date
+  - name: location
