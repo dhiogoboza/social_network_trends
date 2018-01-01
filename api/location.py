@@ -8,7 +8,7 @@ class Location(ndb.Model):
     parentid = ndb.IntegerProperty(indexed=True)
     placeTypeCode = ndb.IntegerProperty(indexed=True)
     placeTypeName = ndb.StringProperty(indexed=True)
-    url = ndb.StringProperty(indexed=False)
+    url = ndb.StringProperty(indexed=True)
     woeid = ndb.IntegerProperty(indexed=True)
 
     def to_dict(self):
