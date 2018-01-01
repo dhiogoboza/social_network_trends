@@ -90,13 +90,25 @@ def get_trends_in_place(now, woeid, history=False):
     '''
     # FIXME(ruben): get_trends_in_place
     print('get_trends_in_place:',now,history)
-    cache = True
 
-    # TODO(ruben): check for history
+    queryResult = Location.query(Location.woeid == int(woeid)).fetch(1)
+    location = (queryResult[0] if len(queryResult) == 1 else None)
+
+    # check for history
+    trend_history = None
+    if location is not None:
+        queryResult = TrendHistory.query(ndb.AND(TrendHistory.date == now,
+                TrendHistory.location == location)).fetch(1)
+        trend_history = (queryResult[0] if len(queryResult) == 1 else None)
+
+    if trend_history is not None:
+        result = []
+        result.append(trend_history.to_dict())
+        return result
 
     # Only search at history
-    #if (history):
-    #    return ""
+    if (history):
+        return ""
 
     # If data is not in cache do request
     if not twitter_api.isAuthenticated():
@@ -125,22 +137,18 @@ def get_trends_in_place(now, woeid, history=False):
         if len(trends) > 0:
             ndb.put_multi(trends)
 
-        # create trend history
-        # FIXME(ruben): check keys before using it
-        location = Location.query( \
-                Location.woeid == result[0]['locations'][0]['woeid']).fetch(1)[0]
-
         if location is None:
-            # TODO(ruben): create new location for this woeid
-            pass
+            location = Location()
+            location.name = result[0]['locations'][0]['name']
+            location.woeid = result[0]['locations'][0]['woeid']
+            location.put()
 
-        print(location)
-
+        # create trend history
         trend_history = TrendHistory()
         trend_history.date = now
         trend_history.trends = trends
         trend_history.location = location
-        print(trend_history.put())
+        trend_history.put()
 
         return result
     else:
