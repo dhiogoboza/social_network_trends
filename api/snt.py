@@ -1,3 +1,4 @@
+# This Python file uses the following encoding: utf-8
 ## Social Network Trends API
 #
 
@@ -88,9 +89,6 @@ def get_trends_in_place(now, woeid, history=False):
     Get trends in place, current date and place (woeid)
     https://developer.twitter.com/en/docs/trends/trends-for-location/api-reference/get-trends-place
     '''
-    # FIXME(ruben): get_trends_in_place
-    print('get_trends_in_place:',now,history)
-
     queryResult = Location.query(Location.woeid == int(woeid)).fetch(1)
     location = (queryResult[0] if len(queryResult) == 1 else None)
 
@@ -172,16 +170,69 @@ def get_subject_relevance_in_places(date, subject_regex, locations, relative=Fal
     @rtype: json
     @return: Json array with Google Map table to draw the map
     '''
-    # FIXME(ruben): get_subject_relevance_in_places
-    print('get_subject_relevance_in_places')
-    return '[]'
+    all_data = {}
+
+    now = datetime.now().date()
+    history = now != date
+
+    for location in locations:
+        if (location["parentid"] == 1):
+            print("location:", location["woeid"])
+            result = get_trends_in_place(date, location["woeid"], history=history)
+
+            if (result != ""):
+                all_location_data = []
+                for trend in result[0]["trends"]:
+                    current_data = {}
+                    current_data["name"] = trend["name"]
+                    current_data["tweet_volume"] = trend["tweet_volume"] if trend["tweet_volume"]!=None else 0
+                    all_location_data.append(current_data)
+
+                #all_location_data = sorted(all_location_data, key=get_trend_key, reverse=True)
+                #print("all_location_data",all_location_data)
+
+                rate = 100
+                dr = rate / len(all_location_data)
+                found = False
+                for trend in all_location_data:
+                    # Check if subjetc matches query
+                    if (simpleregex.match(subject_regex, trend["name"])):
+                        found = True
+                        if not relative:
+                            rate = trend["tweet_volume"] if trend["tweet_volume"]!=0 else 404
+                        break
+
+                    if relative:
+                        rate = rate - dr
+
+                if not found:
+                    rate = 0
+
+                location_data = {"country": location["name"], "rate": int(rate)}
+                if (location["woeid"] in all_data):
+                    location_data["rate"] = location_data["rate"] + all_data[location["woeid"]]["rate"]
+                else:
+                    all_data[location["woeid"]] = location_data
+            else:
+                break;
+        elif all_locations:
+            get_trends_in_place(date, location["woeid"], history=history)
+
+    print("All data", date, ":", all_data)
+
+    chart_data = ({
+        "cols":[{"label":"Country","type":"string"},{"label":"Relevância","type":"number"}],
+        "rows":[]
+    })
+
+    for key, location_data in all_data.items():
+        if location_data["rate"] != 0:
+            location_json = {"c":[{"v": location_data["country"]},{"v": str(location_data["rate"])}]}
+            chart_data["rows"].append(location_json)
+
+    return chart_data
 
 def get_chart(data):
-    # FIXME: get_chart
-    print("FIXME: get_chart")
-
-    print("data:", data)
-
     if (data["type"] == "subjectinplaces"):
 
         if "all_locations" in data:
@@ -192,7 +243,7 @@ def get_chart(data):
             return "{'error':'Empty subject'}"
 
         subject_regex = simpleregex.create(subject)
-        now = str(time.strftime("%d-%m-%Y"))
+        now = datetime.now().date()
         locations = load_locations()
 
         return json.dumps(get_subject_relevance_in_places(now, subject_regex, locations, data["ctype"] == "r"))
@@ -213,7 +264,7 @@ def get_chart(data):
 
         for current in utils.daterange(start_date, end_date + timedelta(days=1)):
             current_str = str(current.strftime("%d-%m-%Y"))
-            all_data[current_str] = get_subject_relevance_in_places(current_str, sr, locations, data["ctype"] == "r")
+            all_data[current_str] = get_subject_relevance_in_places(current, sr, locations, data["ctype"] == "r")
 
         return json.dumps(all_data)
 
