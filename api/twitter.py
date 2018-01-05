@@ -150,7 +150,7 @@ class TwitterAPI:
 
         # request trends information for location
         # TODO(ruben): handle exceptions, ie timeout and etc
-        response = self.requestor.request('https://api.twitter.com/1.1/trends/place.json?id=' + woeid,
+        response = self.requestor.request('https://api.twitter.com/1.1/trends/place.json?id=' + str(woeid),
                 headers={'Authorization': 'Bearer ' + self.bearer_token})
 
         if response.status_code == 200:
